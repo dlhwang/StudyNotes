@@ -15,11 +15,12 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+from notes_api.bridge import AgentBridge, build_bridge
 from notes_api.config import ApiSettings, get_api_settings
 from notes_api.deps import AppState
 from notes_api.errors import install_handlers
 from notes_api.rag import NoteIndex, build_embedder, make_client, reindex_all
-from notes_api.routes import internal, public
+from notes_api.routes import chat, internal, public
 from notes_api.store import Store, seed_demo
 
 
@@ -42,7 +43,11 @@ def _build_default(settings: ApiSettings) -> AppState:
 
 
 def create_app(
-    settings: ApiSettings | None = None, *, store: Store | None = None, index: NoteIndex | None = None
+    settings: ApiSettings | None = None,
+    *,
+    store: Store | None = None,
+    index: NoteIndex | None = None,
+    bridge: AgentBridge | None = None,
 ) -> FastAPI:
     cfg = settings or get_api_settings()
 
@@ -56,6 +61,9 @@ def create_app(
     install_handlers(app)
     app.include_router(public.router)
     app.include_router(internal.router)
+    app.include_router(chat.router)
+    # Agent 호출 중계. inprocess는 처음 쓸 때 그래프를 만든다
+    app.state.bridge = bridge or build_bridge(cfg, app)
     if store is not None and index is not None:
         app.state.notes = _prepare(cfg, store, index)
     return app

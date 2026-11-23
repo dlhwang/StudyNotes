@@ -100,7 +100,7 @@ flowchart LR
 - [x] Unit 08: quiz Agent(Structured Output·few-shot·제안) — `units/unit-08-quiz-agent.md`
 - [x] Unit 09: review Agent + daily_review 예약 그래프 + 장기 메모리 — `units/unit-09-review-agent.md`
 - [x] Unit 10: BE ↔ Agent 연결(SSE 중계·예약 실행·제안 수락) — `units/unit-10-agent-bridge.md`
-- [ ] Unit 11: Streamlit UI — `units/unit-11-streamlit.md`
+- [x] Unit 11: Streamlit UI — `units/unit-11-streamlit.md`
 - [ ] Unit 12: Aegra 실행 연동 — `units/unit-12-aegra.md`
 - [ ] Unit 13: MCP 서버(선택 B) — `units/unit-13-mcp.md`
 - [ ] Unit 14: 평가 확장·문서·패키징 마무리 — `units/unit-14-finish.md`
@@ -146,8 +146,8 @@ flowchart LR
 | 07 | 완료 | 전체 85 passed(notes 그래프 12·규칙 18), ruff·format·mypy 통과, eval 7/7. 예시 tasks·daily_check·TaskItem 제거, 오케스트레이터 프롬프트 v2(few-shot) |
 | 08 | 완료 | 전체 98 passed(quiz 그래프 6·규칙 8), ruff·format·mypy 통과, eval 10/10. 노트 고르기 함수를 agents/note_ref.py로 나눠 두 Agent가 공유 |
 | 09 | 완료 | 전체 119 passed(review 그래프 6·규칙 15), ruff·format·mypy 통과, eval 16/16. aegra.json에 chat·daily_review. 평가 실행기에 screen·expected_intents 추가 |
-| 10 | 진행 중 |  |
-| 11 | 대기 | |
+| 10 | 완료 | 전체 124 passed(중계 5: SSE 순서·메모리·제안 수락 1회·장기 메모리 반영·예약 저장 1회·AegraBridge 변환), ruff·format·mypy 통과. uvicorn 실행 후 HTTP로 질의→퀴즈→현황 3회 스트림 확인 |
+| 11 | 진행 중 |  |
 | 12 | 대기 | |
 | 13 | 대기 | |
 | 14 | 대기 | |
