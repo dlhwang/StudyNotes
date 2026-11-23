@@ -12,6 +12,7 @@
 1. 무언가를 **바꾸는 일**(저장·승인·반영)과 닿으면 §4.4를 먼저 읽는다. ai-agent는 BE에 쓰지 않는다.
 2. 새 하위 Agent나 도구를 추가하면 §7의 체크리스트를 따른다.
 3. 정해지지 않은 것(README §6)을 확정된 것처럼 코드에 박지 않는다. 설정이나 약속(`Protocol`) 뒤에 숨긴다.
+4. 패키지 경계: `src/study_notes`(Agent)는 `notes_api`(BE)·`notes_ui`(화면)를 import하지 않는다. Agent는 BE를 `BeClient`(HTTP 조회)로만 부른다. 반대 방향(BE가 Agent 그래프를 부르는 것, `notes_api/bridge.py`)은 된다.
 
 ## 1. 절대 규칙
 
@@ -78,7 +79,7 @@
 ### 4.2 업무 도구 작성 규칙
 
 - 엔드포인트를 그대로 감싸지 않는다. 여러 단계 작업을 하나의 업무 단위 호출로 묶는다. `[근거: Anthropic, Writing tools for agents]`
-- 이름: `{Agent 이름}_{동사}_{대상}`. 예: `tasks_list_items`. 틀리면 import 때 오류가 난다.
+- 이름: `{Agent 이름}_{동사}_{대상}`. 예: `notes_search_chunks`. 틀리면 import 때 오류가 난다.
 - 독스트링은 새 팀원에게 설명하듯 쓴다: 언제 쓰는지, 언제 쓰지 않는지, 다른 도구와의 경계.
 - 인자는 Pydantic 모델로 받는다. 코드값은 `Literal`/Enum으로 제한한다. 인자 이름은 모호하지 않게(`user` 대신 `user_id`).
 - 목록은 기본 건수 제한을 둔다.
@@ -101,11 +102,11 @@ BE:       초안을 저장(dedupe_key로 한 번만) → 승인·반영 → 감�
 ```
 
 ```python
-draft = self.proposal(kind="task.reassign", title="담당자를 바꿉니다",
-                      payload={"task_id": "T-1", "to": "이나래"}, reasons=[f"사용자 요청: {req.text}"])
+draft = self.proposal(kind="quiz.cards_add", title="'StateGraph 기초' 카드 2장",
+                      payload={"note_id": "N-1", "cards": cards}, reasons=[f"사용자 요청: {req.text}"])
 return AgentResult(reply=self.reply(
-    "이대로 바꿀까요?",
-    actions=[UiAction(kind="save_proposal", label="바꾸기", params={"index": 0})],
+    "저장하면 복습 카드가 됩니다.",
+    actions=[UiAction(kind="save_proposal", label="카드 2장 저장", params={"index": 0})],
     proposals=[draft],
 ))
 ```
@@ -138,11 +139,11 @@ return AgentResult(reply=self.reply(
 | 대상 | 규칙 | 예 |
 | --- | --- | --- |
 | 노드 | 동사형 snake_case, 한 노드 한 책임 | `classify_intent`, `evaluate` |
-| 하위 Agent | 폴더 이름 = `name` | `agents/tasks/`, `name = "tasks"` |
-| 의도 | snake_case | `task_list` |
-| 업무 도구 | `{Agent 이름}_{동사}_{대상}` | `tasks_list_items` |
-| 제안 종류 | `{업무}.{행위}` | `task.overdue_notice` |
-| 프롬프트 파일 | `{agent}.{용도}.v{n}.md` | `tasks.explain.v1.md` |
+| 하위 Agent | 폴더 이름 = `name` | `agents/notes/`, `name = "notes"` |
+| 의도 | snake_case | `note_search` |
+| 업무 도구 | `{Agent 이름}_{동사}_{대상}` | `notes_search_chunks` |
+| 제안 종류 | `{업무}.{행위}` | `quiz.cards_add` |
+| 프롬프트 파일 | `{agent}.{용도}.v{n}.md` | `notes.summary.v1.md` |
 | 모델 참조 | 역할 키 | `router`, `worker`, `judge` |
 | PostgreSQL | `AGENT_DB_SCHEMA` 스키마, snake_case 복수형 테이블 | `runs`, `tool_calls` |
 

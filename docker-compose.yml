@@ -1,0 +1,60 @@
+# 학습 노트 비서 전체 실행: PostgreSQL + Aegra(Agent) + BE + 화면.
+# ⚠ 이 저장소를 만든 PC에는 Docker가 없어 확인하지 않았다(2026-11-23). 처음 쓸 때 로그를 보며 맞춘다.
+#
+#   docker compose up --build
+#   화면 http://localhost:8501 · BE http://localhost:8000/docs · Aegra http://localhost:2026/docs
+#
+# 모델 키는 .env에 두고 env_file로 넘긴다(.env는 저장소에 올리지 않는다).
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: aegra
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aegra"]
+      interval: 5s
+      retries: 20
+
+  aegra:
+    build: .
+    command: ["aegra", "serve", "--host", "0.0.0.0", "--port", "2026"]
+    env_file: [{ path: .env, required: false }]
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: aegra
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      STUDY_NOTES_BE__MODE: http
+      STUDY_NOTES_BE__BASE_URL: http://api:8000
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["2026:2026"]
+
+  api:
+    build: .
+    env_file: [{ path: .env, required: false }]
+    environment:
+      NOTES_API_AGENT_MODE: aegra
+      NOTES_API_AEGRA_URL: http://aegra:2026
+    volumes:
+      - notes-data:/app/data
+    depends_on: [aegra]
+    ports: ["8000:8000"]
+
+  ui:
+    build: .
+    command: ["streamlit", "run", "app/streamlit_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    environment:
+      NOTES_UI_API_URL: http://api:8000
+    depends_on: [api]
+    ports: ["8501:8501"]
+
+volumes:
+  pgdata:
+  notes-data:

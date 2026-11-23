@@ -150,7 +150,7 @@ flowchart LR
 | 11 | 완료 | 전체 128 passed(UI 로직 4: SSE·버튼·화면 변환·BE 왕복), ruff·format·mypy 통과. 내장 브라우저로 확인: 채팅 질의(근거)→'그 노트로 퀴즈'→[카드 3장 저장] 성공, 복습 계획 만들기→답 보기→알맞음(다음 복습일 표시), 노트·설정 화면 |
 | 12 | 차단 | 환경 문제: PostgreSQL 17 서비스 멈춤·5432 응답 없음 → aegra serve·smoke 미실행. 한 것: aegra-cli 0.12.0 설치, 그래프 import 확인, .env.example·smoke_aegra.py(RAG 질의·메모리·daily_review)·tools/run_dev.ps1. 실행 절차 문서는 Unit 14에서 docs/02 §3에 반영. 설치 후 pytest 128 passed |
 | 13 | 완료 | tests/mcp 4 passed(조회 전용 표시·검색→노트·노트북·복습 카드·오류), 전체 132 passed, ruff·format·mypy 통과. 실제 stdio 실행으로 떠 있는 BE 검색 확인. 설치된 SDK가 mcp 2.3.0이라 FastMCP 대신 MCPServer 사용 |
-| 14 | 진행 중 |  |
+| 14 | 완료 | 다섯 검사 통과: pytest 133 passed, ruff·format(135 files)·mypy(94 files) 통과, eval 18/18(의도 7종 각 2건 이상 + 다중 의도 2건). README·docs/01·02·AGENTS 개정, 패키지 경계 시험 추가, Dockerfile·docker-compose.yml(미검증 표시) |
 
 ## 전체 완료 기준
 
@@ -183,3 +183,19 @@ flowchart LR
 1. 실제 LLM·임베딩 공급자와 모델(OpenAI, Bedrock 등)과 키 — `.env`의 `STUDY_NOTES_LLM__MODELS`에 넣을 값.
 2. 로컬 PostgreSQL 17 서비스를 켜고 접속 정보(`.env`의 `POSTGRES_*`)를 채워도 되는지 — Aegra 실행에 필요.
 3. A2A(선택 C)를 넣을지 — 넣는다면 Aegra의 A2A 지원 여부부터 확인해야 한다.
+4. `docs/unit-of-work-guide.md` §5가 다른 저장소(Gradle·H2·atworks) 규칙이다. 이 저장소용으로 고칠지(지금은 이 개요의 "진행 규칙"으로 대신함).
+5. Docker 파일은 Docker가 없어 검증하지 못했다. Docker가 있는 PC에서 한 번 돌려 볼지.
+
+## 진행 중 바꾼 것 (계획과 다른 점)
+
+- Unit 07: 노트 고르기 함수를 `agents/note_ref.py`로 나눠 notes·quiz가 함께 쓴다(하위 Agent끼리 import하지 않으려고).
+- Unit 09: "앞으로 요약은 짧게"가 요약·퀴즈 의도에도 걸려, notes·quiz 의도 규칙에 선호 말(앞으로·항상·기억해·이제부터)을 빼는 조건을 더했다.
+- Unit 12: 실행 절차 문서는 Unit 14의 `docs/02-개발-가이드.md` §3.2로 옮겨 썼다.
+- Unit 13: 설치된 MCP SDK가 2.3.0이라 `FastMCP` 대신 `MCPServer`, 필드 이름은 snake_case(`read_only_hint`). 노트북 목록 도구는 이름이 필요해 공개 API `GET /notebooks`(조회)를 쓴다.
+- Unit 14: Agent → BE·화면 import 금지를 시험(`tests/unit/test_boundaries.py`)과 AGENTS.md §0-4로 굳혔다.
+
+## 전체 결과 (2026-11-23)
+
+- 완료 13 / 차단 1(Unit 12 — PostgreSQL 멈춤, 코드·설정은 끝남)
+- 다섯 검사: pytest 133 passed, ruff·format·mypy 통과, eval 18/18
+- 내장 브라우저로 화면 흐름 확인(채팅 → 퀴즈 저장 → 복습 등급)

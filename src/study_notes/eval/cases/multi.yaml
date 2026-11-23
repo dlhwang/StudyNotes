@@ -1,0 +1,16 @@
+# 다중 의도 평가 질문 — 한 질문에 요청이 둘. expected_intents는 의도 목록 전체가 같아야 통과.
+
+subject_id: NB-1
+screen:
+  base_date: "2026-11-23"
+cases:
+  - id: MU-001
+    question: 체크포인터와 메모리 요약하고 퀴즈도 내줘
+    expected_intent: note_summary
+    expected_intents: [note_summary, quiz_make]
+    must_include: ["체크포인터와 메모리", "퀴즈 3개"]
+  - id: MU-002
+    question: StateGraph 기초 요약해 주고 오늘 복습할 거 알려줘
+    expected_intent: note_summary
+    expected_intents: [note_summary, review_today]
+    must_include: ["StateGraph 기초", "오늘 복습할 카드 3장"]
