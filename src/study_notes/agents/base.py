@@ -24,14 +24,15 @@ import json
 from typing import Any, ClassVar, TypeVar
 
 from pydantic import BaseModel, Field, ValidationError
+from pydantic_core import to_jsonable_python
 
 from study_notes.core.context import RequestInfo
-from study_notes.core.errors import LlmUnavailableError, ToolInputError
+from study_notes.core.errors import LlmUnavailableError, ToolInputError, ToolPermissionError
 from study_notes.core.ids import args_hash, dedupe_key
 from study_notes.core.proposal import ProposalDraft
 from study_notes.core.reply import AgentReply, AgentResult, Citation, UiAction
 from study_notes.deps import Deps
-from study_notes.llm.gateway import LlmRequest, Role
+from study_notes.llm.gateway import ChatMessage, LlmRequest, LlmResult, Role, ToolDef
 from study_notes.observability.recorder import Record, safe_record
 from study_notes.orchestrator.intents import IntentSpec
 from study_notes.prompts.loader import Prompt, load_prompt
@@ -45,6 +46,32 @@ class AgentRequest(BaseModel):
     text: str
     # 최근 대화 몇 줄의 요약 (원문 전체를 넘기지 않는다)
     history: list[str] = Field(default_factory=list)
+
+
+class ReactStep(BaseModel):
+    """ReAct 한 단계의 흔적. 화면의 '실행 흔적'으로 보여 줄 수 있다(관찰은 앞부분만)."""
+
+    step: int
+    thought: str = ""
+    tool: str
+    args: dict[str, Any] = Field(default_factory=dict)
+    observation: str = ""
+
+
+class ReactOutcome(BaseModel):
+    answer: str
+    steps: list[ReactStep] = Field(default_factory=list)
+    # 도구가 돌려준 원래 값(근거 만들기용). State에 넣지 않는다
+    observations: list[Any] = Field(default_factory=list)
+    prompt_id: str
+
+
+_OBS_MAX = 2000
+
+
+def _to_json(value: Any) -> str:
+    text = json.dumps(to_jsonable_python(value), ensure_ascii=False)
+    return text if len(text) <= _OBS_MAX else text[:_OBS_MAX] + "…(잘림)"
 
 
 class BaseAgent:
@@ -81,10 +108,7 @@ class BaseAgent:
     def prompt(self, purpose: str) -> Prompt:
         return load_prompt(self.name, purpose)
 
-    async def ask_llm(self, role: Role, prompt: Prompt, user_text: str, **values: object) -> tuple[str, str]:
-        """(답, 프롬프트 ID). 실패하면 LlmUnavailableError."""
-        req = LlmRequest(role=role, system=prompt.render(**values), user=user_text, prompt_id=prompt.id)
-        result = await self.deps.llm.complete(req)
+    async def _record_llm(self, role: Role, prompt_id: str, result: LlmResult, **extra: object) -> None:
         await safe_record(
             self.deps.recorder,
             Record(
@@ -94,16 +118,88 @@ class BaseAgent:
                 data={
                     "agent": self.name,
                     "role": role,
-                    "prompt_id": prompt.id,
+                    "prompt_id": prompt_id,
                     "model": result.model,
                     "input_tokens": result.input_tokens,
                     "output_tokens": result.output_tokens,
                     "latency_ms": result.latency_ms,
                     "cached": result.cached,
+                    "tool_calls": [c.name for c in result.tool_calls],
+                    **extra,
                 },
             ),
         )
+
+    async def ask_llm(self, role: Role, prompt: Prompt, user_text: str, **values: object) -> tuple[str, str]:
+        """(답, 프롬프트 ID). 실패하면 LlmUnavailableError."""
+        req = LlmRequest(role=role, system=prompt.render(**values), user=user_text, prompt_id=prompt.id)
+        result = await self.deps.llm.complete(req)
+        await self._record_llm(role, prompt.id, result)
         return result.text, prompt.id
+
+    async def react(
+        self,
+        role: Role,
+        prompt: Prompt,
+        user_text: str,
+        *,
+        tools: list[str] | None = None,
+        max_steps: int = 4,
+        **values: object,
+    ) -> ReactOutcome:
+        """ReAct 루프: 모델 판단(Function Calling) → 조회 도구 실행 → 관찰을 돌려줌 → … → 최종 답.
+
+        - 모델이 고를 수 있는 도구는 이 Agent의 ``llm_selectable`` 도구 중 ``tools``에 든 것뿐이다.
+        - 도구 실행은 ``self.tool``(허용 목록·호출 상한·기록)을 거친다.
+        - 입력 오류(``ToolInputError``)는 관찰로 돌려줘 모델이 고치게 한다. 권한·상한 오류는 그대로 올린다.
+        - ``max_steps`` 안에 최종 답이 없거나 모델을 쓸 수 없으면 ``LlmUnavailableError`` → 부른 쪽이 규칙 답으로.
+        """
+        specs = [s for s in self.runner.llm_tools() if tools is None or s.name in tools]
+        if not specs:
+            raise LlmUnavailableError("모델이 고를 수 있는 도구가 없습니다")
+        allowed = {s.name for s in specs}
+        defs = [
+            ToolDef(name=s.name, description=s.description, parameters=s.args_model.model_json_schema()) for s in specs
+        ]
+        system = prompt.render(**values)
+        convo: list[ChatMessage] = []
+        steps: list[ReactStep] = []
+        observations: list[Any] = []
+        for step in range(1, max_steps + 1):
+            req = LlmRequest(
+                role=role,
+                system=system,
+                user=user_text,
+                messages=list(convo) or None,
+                tools=defs,
+                prompt_id=prompt.id,
+                cacheable=False,
+            )
+            result = await self.deps.llm.complete(req)
+            await self._record_llm(role, prompt.id, result, step=step)
+            if not result.tool_calls:
+                if not result.text.strip():
+                    raise LlmUnavailableError("모델이 빈 답을 냈습니다")
+                return ReactOutcome(
+                    answer=result.text.strip(), steps=steps, observations=observations, prompt_id=prompt.id
+                )
+            convo.append(ChatMessage(role="assistant", content=result.text, tool_calls=result.tool_calls))
+            for call in result.tool_calls:
+                if call.name not in allowed:
+                    raise ToolPermissionError(f"모델이 허용되지 않은 도구를 골랐습니다: {call.name}")
+                try:
+                    out = await self.tool(call.name, call.arguments)
+                    observations.append(out)
+                    obs = _to_json(out)
+                except ToolInputError as e:
+                    obs = json.dumps({"error": str(e), "hint": e.hint}, ensure_ascii=False)
+                convo.append(ChatMessage(role="tool", content=obs, tool_call_id=call.id, name=call.name))
+                steps.append(
+                    ReactStep(
+                        step=step, thought=result.text, tool=call.name, args=call.arguments, observation=obs[:200]
+                    )
+                )
+        raise LlmUnavailableError(f"ReAct 단계 상한({max_steps})을 넘었습니다")
 
     async def ask_llm_json(self, model: type[M], role: Role, prompt: Prompt, user_text: str, **values: object) -> M:
         """구조화 출력. 형식이 틀리면 LlmUnavailableError로 본다(규칙 답으로 바꾸게)."""
@@ -116,6 +212,7 @@ class BaseAgent:
             temperature=0.1,
         )
         result = await self.deps.llm.complete(req)
+        await self._record_llm(role, prompt.id, result)
         raw = result.raw_json if result.raw_json is not None else _extract_json(result.text)
         try:
             return model.model_validate(raw)

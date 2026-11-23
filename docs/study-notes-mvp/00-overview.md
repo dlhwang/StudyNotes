@@ -96,7 +96,7 @@ flowchart LR
 - [x] Unit 04: FastAPI BE(공개 API·내부 조회 API) — `units/unit-04-fastapi-be.md`
 - [x] Unit 05: Agent의 BeClient를 학습 노트 업무로 — `units/unit-05-be-client.md`
 - [x] Unit 06: Function Calling 게이트웨이와 ReAct 루프 — `units/unit-06-react.md`
-- [ ] Unit 07: notes Agent(찾기·요약·RAG 질의) + 대화 메모리 + 예시 제거 — `units/unit-07-notes-agent.md`
+- [x] Unit 07: notes Agent(찾기·요약·RAG 질의) + 대화 메모리 + 예시 제거 — `units/unit-07-notes-agent.md`
 - [ ] Unit 08: quiz Agent(Structured Output·few-shot·제안) — `units/unit-08-quiz-agent.md`
 - [ ] Unit 09: review Agent + daily_review 예약 그래프 + 장기 메모리 — `units/unit-09-review-agent.md`
 - [ ] Unit 10: BE ↔ Agent 연결(SSE 중계·예약 실행·제안 수락) — `units/unit-10-agent-bridge.md`
@@ -142,8 +142,8 @@ flowchart LR
 | 03 | 완료 | tests/api/test_rag.py 7 passed(체크포인터·ReAct·이벤트 루프 질의 1위), ruff·format·mypy 통과. Chroma 1.5.9 그대로 사용 |
 | 04 | 완료 | tests/api 31 passed(API 8), 전체 62 passed, ruff·format·mypy 통과. uvicorn 실행 /health notes 5·chunks 10, 검색 200 확인 |
 | 05 | 완료 | 전체 67 passed(가짜 BE 3·계약 2 포함), ruff·format·mypy 통과, eval 2/2. 예시 데이터 subject를 DEMO-001→NB-1로 옮김(Unit 07에서 삭제) |
-| 06 | 진행 중 |  |
-| 07 | 대기 | |
+| 06 | 완료 | tests/unit/test_react.py 5 passed(도구→답, 숨은 도구 차단, 입력 오류 회복, 단계 상한, LiteLLM 변환), 전체 72 passed, ruff·format·mypy 통과 |
+| 07 | 진행 중 |  |
 | 08 | 대기 | |
 | 09 | 대기 | |
 | 10 | 대기 | |

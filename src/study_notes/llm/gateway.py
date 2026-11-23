@@ -12,7 +12,7 @@ import hashlib
 import json
 import time
 from collections import OrderedDict, deque
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -21,10 +21,40 @@ from study_notes.core.errors import LlmUnavailableError
 Role = Literal["router", "worker", "judge", "embedding"]
 
 
+class ToolDef(BaseModel):
+    """모델에게 보여 줄 도구 (Function Calling). parameters는 JSON 스키마."""
+
+    name: str
+    description: str
+    parameters: dict[str, Any]
+
+
+class ToolCall(BaseModel):
+    """모델이 고른 도구 호출."""
+
+    id: str
+    name: str
+    arguments: dict[str, Any] = Field(default_factory=dict)
+
+
+class ChatMessage(BaseModel):
+    """``user`` 다음에 이어지는 대화 (ReAct 루프). tool 메시지는 tool_call_id로 호출과 잇는다."""
+
+    role: Literal["user", "assistant", "tool"]
+    content: str = ""
+    tool_calls: list[ToolCall] = Field(default_factory=list)
+    tool_call_id: str | None = None
+    name: str | None = None
+
+
 class LlmRequest(BaseModel):
     role: Role
     system: str
     user: str
+    # 여러 단계 대화(ReAct). 있으면 user 뒤에 이어 붙는다
+    messages: list[ChatMessage] | None = None
+    # Function Calling: 모델이 고를 수 있는 도구. 결과는 LlmResult.tool_calls
+    tools: list[ToolDef] | None = None
     # 구조화 출력이 필요하면 JSON 스키마를 넘긴다. 결과 검증은 부른 쪽이 Pydantic으로 한다
     json_schema: dict[str, object] | None = None
     max_tokens: int | None = None
@@ -44,6 +74,8 @@ class LlmResult(BaseModel):
     cached: bool = False
     prompt_id: str | None = None
     raw_json: dict[str, object] | None = Field(default=None)
+    # 모델이 도구를 부르기로 했으면 여기에 (text는 그때의 생각일 수 있다)
+    tool_calls: list[ToolCall] = Field(default_factory=list)
 
 
 class LlmGateway(Protocol):
