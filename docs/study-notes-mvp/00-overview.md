@@ -90,8 +90,8 @@ flowchart LR
 
 ## Unit of Work 목록
 
-- [ ] Unit 01: 개발 환경과 기준선 — `units/unit-01-env-baseline.md`
-- [ ] Unit 02: BE 저장소(SQLite)와 복습 계산 — `units/unit-02-store.md`
+- [x] Unit 01: 개발 환경과 기준선 — `units/unit-01-env-baseline.md`
+- [x] Unit 02: BE 저장소(SQLite)와 복습 계산 — `units/unit-02-store.md`
 - [ ] Unit 03: RAG 적재·검색(전처리·임베딩·Chroma) — `units/unit-03-rag.md`
 - [ ] Unit 04: FastAPI BE(공개 API·내부 조회 API) — `units/unit-04-fastapi-be.md`
 - [ ] Unit 05: Agent의 BeClient를 학습 노트 업무로 — `units/unit-05-be-client.md`
@@ -137,8 +137,8 @@ flowchart LR
 
 | Unit | 상태 | 검증 결과 |
 |---|---|---|
-| 01 | 대기 | |
-| 02 | 대기 | |
+| 01 | 완료 | pytest 31 passed, ruff·format·mypy(56 files) 통과, eval 2/2. chromadb 1.5.9·streamlit 1.67.0·mcp 설치 |
+| 02 | 진행 중 | |
 | 03 | 대기 | |
 | 04 | 대기 | |
 | 05 | 대기 | |
