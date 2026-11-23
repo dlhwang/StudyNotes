@@ -40,7 +40,7 @@ def test_dedupe_key_is_stable() -> None:
 
 
 def test_task_rules() -> None:
-    tasks = FakeBeClient().tasks["DEMO-001"]
+    tasks = FakeBeClient().tasks["NB-1"]
     found = find_task(tasks, "월간 보고서 작성 왜 생겼어")
     assert found is not None and found.id == "T-2"
     notices = overdue_notices(tasks, "2026-11-23")

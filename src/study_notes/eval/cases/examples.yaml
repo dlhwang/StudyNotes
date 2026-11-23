@@ -3,7 +3,7 @@
 # 판정: 첫 의도가 expected_intent와 같고, must_include가 답에 모두 들어 있으면 통과.
 # 각 Agent 개발자는 자기 의도의 질문을 이 폴더에 yaml로 추가한다.
 
-subject_id: DEMO-001
+subject_id: NB-1
 cases:
   - id: EX-001
     question: 오늘 할 일 보여줘

@@ -1,6 +1,6 @@
-"""BeClient의 HTTP 구현.
+"""BeClient의 HTTP 구현. 학습 노트 BE(``notes_api``)의 ``/internal/agent/*``를 부른다.
 
-**경로는 예시다.** BE와 합의되면 경로만 바꾸거나, OpenAPI에서 만든 클라이언트로 갈아 끼운다.
+경로는 ``notes_api/routes/internal.py``와 같다. 바꿀 때는 두 곳과 계약 시험(tests/contract)을 함께 고친다.
 - 조회만 있다. 타임아웃·5xx는 간격을 늘려 가며 다시 부른다.
 - 401/403 → ToolPermissionError, 그 밖의 4xx → ToolInputError(BE가 준 문장), 5xx·타임아웃 → BeUnavailableError.
 - 오류 본문은 RFC 9457 Problem Details(``detail``)를 기대한다.
@@ -17,7 +17,15 @@ from pydantic import BaseModel, SecretStr, TypeAdapter
 
 from study_notes.config import BeSettings
 from study_notes.core.errors import BeUnavailableError, ToolInputError, ToolPermissionError
-from study_notes.tools.be_client.protocol import TaskItem
+from study_notes.tools.be_client.protocol import (
+    Card,
+    ChunkHit,
+    LearnerProfile,
+    Note,
+    NoteSummary,
+    ReviewStats,
+    TaskItem,
+)
 
 T = TypeVar("T")
 
@@ -79,10 +87,47 @@ class HttpBeClient:
         payload = body.model_dump(mode="json") if isinstance(body, BaseModel) else body
         return await self._retry(lambda: self._client.post(path, json=payload, headers=self._headers(token)), adapter)
 
-    # ── 예시 업무: 할 일 ───────────────────────────────────────────────
+    # ── 학습 노트 ─────────────────────────────────────────────────────
+
+    async def list_subjects(self, *, token: SecretStr | None) -> list[str]:
+        return await self._get("/notebooks", TypeAdapter(list[str]), token=token)
+
+    async def list_notes(
+        self, notebook_id: str, *, query: str | None = None, limit: int = 10, token: SecretStr | None
+    ) -> list[NoteSummary]:
+        return await self._get(
+            f"/notebooks/{notebook_id}/notes", TypeAdapter(list[NoteSummary]), token=token, query=query, limit=limit
+        )
+
+    async def get_note(self, note_id: str, *, token: SecretStr | None) -> Note:
+        return await self._get(f"/notes/{note_id}", TypeAdapter(Note), token=token)
+
+    async def search_chunks(
+        self, notebook_id: str, query: str, *, k: int = 5, token: SecretStr | None
+    ) -> list[ChunkHit]:
+        return await self._post_query(
+            f"/notebooks/{notebook_id}/search", {"query": query, "k": k}, TypeAdapter(list[ChunkHit]), token=token
+        )
+
+    async def list_cards(self, notebook_id: str, *, note_id: str | None = None, token: SecretStr | None) -> list[Card]:
+        return await self._get(f"/notebooks/{notebook_id}/cards", TypeAdapter(list[Card]), token=token, note_id=note_id)
+
+    async def list_due_cards(
+        self, notebook_id: str, base_date: str, *, limit: int = 20, token: SecretStr | None
+    ) -> list[Card]:
+        return await self._get(
+            f"/notebooks/{notebook_id}/due", TypeAdapter(list[Card]), token=token, base_date=base_date, limit=limit
+        )
+
+    async def get_review_stats(self, notebook_id: str, base_date: str, *, token: SecretStr | None) -> ReviewStats:
+        return await self._get(
+            f"/notebooks/{notebook_id}/stats", TypeAdapter(ReviewStats), token=token, base_date=base_date
+        )
+
+    async def get_learner_profile(self, *, token: SecretStr | None, base_date: str | None = None) -> LearnerProfile:
+        return await self._get("/profile", TypeAdapter(LearnerProfile), token=token, base_date=base_date)
+
+    # ── 예시 업무: 할 일 (Unit 07에서 지운다) ─────────────────────────
 
     async def list_tasks(self, subject_id: str, *, token: SecretStr | None) -> list[TaskItem]:
         return await self._get(f"/subjects/{subject_id}/tasks", TypeAdapter(list[TaskItem]), token=token)
-
-    async def list_subjects(self, *, token: SecretStr | None) -> list[str]:
-        return await self._get("/subjects/active", TypeAdapter(list[str]), token=token)
