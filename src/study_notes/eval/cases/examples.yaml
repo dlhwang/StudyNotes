@@ -1,0 +1,15 @@
+# 평가 질문 예시. 질문, 기대 의도, 답에 반드시 들어갈 말을 적는다.
+# 기대 답의 말은 가짜 BE(tools/fakes/be.py)의 합성 데이터 기준이다.
+# 판정: 첫 의도가 expected_intent와 같고, must_include가 답에 모두 들어 있으면 통과.
+# 각 Agent 개발자는 자기 의도의 질문을 이 폴더에 yaml로 추가한다.
+
+subject_id: DEMO-001
+cases:
+  - id: EX-001
+    question: 오늘 할 일 보여줘
+    expected_intent: task_list
+    must_include: ["열린 할 일 2건", "견적서 검토"]
+  - id: EX-002
+    question: 견적서 검토 할 일 왜 생겼어?
+    expected_intent: task_explain
+    must_include: ["협력사 견적이 새로 들어왔다"]
