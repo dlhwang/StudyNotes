@@ -98,7 +98,7 @@ flowchart LR
 - [x] Unit 06: Function Calling 게이트웨이와 ReAct 루프 — `units/unit-06-react.md`
 - [x] Unit 07: notes Agent(찾기·요약·RAG 질의) + 대화 메모리 + 예시 제거 — `units/unit-07-notes-agent.md`
 - [x] Unit 08: quiz Agent(Structured Output·few-shot·제안) — `units/unit-08-quiz-agent.md`
-- [ ] Unit 09: review Agent + daily_review 예약 그래프 + 장기 메모리 — `units/unit-09-review-agent.md`
+- [x] Unit 09: review Agent + daily_review 예약 그래프 + 장기 메모리 — `units/unit-09-review-agent.md`
 - [ ] Unit 10: BE ↔ Agent 연결(SSE 중계·예약 실행·제안 수락) — `units/unit-10-agent-bridge.md`
 - [ ] Unit 11: Streamlit UI — `units/unit-11-streamlit.md`
 - [ ] Unit 12: Aegra 실행 연동 — `units/unit-12-aegra.md`
@@ -144,8 +144,8 @@ flowchart LR
 | 05 | 완료 | 전체 67 passed(가짜 BE 3·계약 2 포함), ruff·format·mypy 통과, eval 2/2. 예시 데이터 subject를 DEMO-001→NB-1로 옮김(Unit 07에서 삭제) |
 | 06 | 완료 | tests/unit/test_react.py 5 passed(도구→답, 숨은 도구 차단, 입력 오류 회복, 단계 상한, LiteLLM 변환), 전체 72 passed, ruff·format·mypy 통과 |
 | 07 | 완료 | 전체 85 passed(notes 그래프 12·규칙 18), ruff·format·mypy 통과, eval 7/7. 예시 tasks·daily_check·TaskItem 제거, 오케스트레이터 프롬프트 v2(few-shot) |
-| 08 | 진행 중 |  |
-| 09 | 대기 | |
+| 08 | 완료 | 전체 98 passed(quiz 그래프 6·규칙 8), ruff·format·mypy 통과, eval 10/10. 노트 고르기 함수를 agents/note_ref.py로 나눠 두 Agent가 공유 |
+| 09 | 진행 중 |  |
 | 10 | 대기 | |
 | 11 | 대기 | |
 | 12 | 대기 | |

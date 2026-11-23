@@ -1,0 +1,16 @@
+# quiz Agent 평가 질문 (가짜 BE 합성 데이터 기준)
+
+subject_id: NB-1
+cases:
+  - id: QZ-001
+    question: StateGraph 기초 퀴즈 내줘
+    expected_intent: quiz_make
+    must_include: ["퀴즈 3개", "노드란 무엇인가?"]
+  - id: QZ-002
+    question: 도구 호출과 ReAct로 문제 2개 만들어줘
+    expected_intent: quiz_make
+    must_include: ["퀴즈 2개", "Function Calling이란 무엇인가?"]
+  - id: QZ-003
+    question: 퀴즈 내줘
+    expected_intent: quiz_make
+    must_include: ["어느 노트로"]
