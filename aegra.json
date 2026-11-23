@@ -6,6 +6,10 @@
     "chat": {
       "path": "./src/study_notes/graphs/chat.py:graph",
       "description": "채팅: 의도 판정 → 하위 Agent → 답·제안 초안·버튼"
+    },
+    "daily_review": {
+      "path": "./src/study_notes/graphs/daily_review.py:graph",
+      "description": "예약 실행: 노트북마다 오늘 복습 계획 제안 초안. BE가 부르고 BE가 저장"
     }
   },
   "auth": {

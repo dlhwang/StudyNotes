@@ -23,7 +23,9 @@ from study_notes.core.reply import AgentResult, Citation, UiAction
 from study_notes.orchestrator.intents import IntentSpec
 from study_notes.tools.be_client.protocol import ChunkHit, LearnerProfile, Note, NoteSummary
 
-NOTE_SUMMARY = IntentSpec("note_summary", "노트 요약하기", (r"(요약|정리해|핵심만)",))
+# "앞으로 요약은 짧게"는 선호 기억(review Agent의 profile_update)이므로 뺀다
+_PREF = r"(앞으로|항상|기억해|이제부터)"
+NOTE_SUMMARY = IntentSpec("note_summary", "노트 요약하기", (rf"^(?!.*{_PREF}).*(요약|정리해|핵심만)",))
 NOTE_SEARCH = IntentSpec(
     "note_search",
     "노트 찾기·목록 보기",
@@ -32,7 +34,10 @@ NOTE_SEARCH = IntentSpec(
 NOTE_QA = IntentSpec(
     "note_qa",
     "노트 내용으로 질문에 답하기",
-    (r"^(?!.*(퀴즈|문제|복습|요약|정리|찾아|검색|목록)).*(뭐야|뭐지|뭔데|무엇|차이|어떻게|왜|설명해|알려줘)",),
+    (
+        r"^(?!.*(퀴즈|문제|복습|요약|정리|찾아|검색|목록|현황|통계|정답률|약한|취약|앞으로|기억해))"
+        r".*(뭐야|뭐지|뭔데|무엇|차이|어떻게|왜|설명해|알려줘)",
+    ),
 )
 
 

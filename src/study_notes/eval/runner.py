@@ -30,6 +30,10 @@ class Case:
     must_include: list[str]
     subject_id: str
     enabled: bool = True
+    # 화면 정보(예: base_date, note_id). 파일 머리의 screen과 합친다
+    screen: dict[str, Any] = field(default_factory=dict)
+    # 다중 의도: 있으면 의도 목록 전체가 같아야 통과
+    expected_intents: list[str] | None = None
 
 
 @dataclass
@@ -46,6 +50,7 @@ def load_cases(folder: Path = CASES_DIR) -> list[Case]:
     for path in sorted(folder.glob("*.yaml")):
         doc: dict[str, Any] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         default_subject = str(doc.get("subject_id") or "")
+        default_screen: dict[str, Any] = {k: str(v) for k, v in (doc.get("screen") or {}).items()}
         for c in doc.get("cases") or []:
             cases.append(
                 Case(
@@ -55,6 +60,8 @@ def load_cases(folder: Path = CASES_DIR) -> list[Case]:
                     must_include=[str(x) for x in c.get("must_include") or []],
                     subject_id=str(c.get("subject_id") or default_subject),
                     enabled=bool(c.get("enabled", True)),
+                    screen={**default_screen, **{k: str(v) for k, v in (c.get("screen") or {}).items()}},
+                    expected_intents=[str(x) for x in c["expected_intents"]] if c.get("expected_intents") else None,
                 )
             )
     return cases
@@ -67,12 +74,14 @@ async def run_case(case: Case) -> CaseResult:
     out = await graph.ainvoke(
         {"messages": [{"role": "user", "content": case.question}]},
         config=config,
-        context=AgentContext(subject_id=case.subject_id),
+        context=AgentContext(subject_id=case.subject_id, screen=dict(case.screen)),
     )
     intents = list(out.get("intents") or [])
     answer = " ".join(str(r.get("text", "")) for r in out.get("replies") or [])
     missing = [m for m in case.must_include if m not in answer]
     passed = bool(intents) and intents[0] == case.expected_intent and not missing
+    if case.expected_intents is not None:
+        passed = passed and intents == case.expected_intents
     await safe_record(
         get_deps().recorder,
         Record(

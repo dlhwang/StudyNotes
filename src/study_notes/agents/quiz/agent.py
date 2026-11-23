@@ -23,7 +23,12 @@ from study_notes.core.reply import AgentResult, Citation, UiAction
 from study_notes.orchestrator.intents import IntentSpec
 from study_notes.tools.be_client.protocol import Card, LearnerProfile, Note, NoteSummary
 
-QUIZ_MAKE = IntentSpec("quiz_make", "노트로 퀴즈 카드 만들기", (r"(퀴즈|문제).*(내|만들|줘|출제)", r"카드.*만들"))
+_NOT_PREF = r"^(?!.*(앞으로|항상|기억해|이제부터))"
+QUIZ_MAKE = IntentSpec(
+    "quiz_make",
+    "노트로 퀴즈 카드 만들기",
+    (rf"{_NOT_PREF}.*(퀴즈|문제).*(내|만들|줘|출제)", rf"{_NOT_PREF}.*카드.*만들"),
+)
 
 
 class QuizOut(BaseModel):

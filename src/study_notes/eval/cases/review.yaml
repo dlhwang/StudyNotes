@@ -1,0 +1,30 @@
+# review Agent 평가 질문 (가짜 BE 합성 데이터 기준, 기준일 고정)
+
+subject_id: NB-1
+screen:
+  base_date: "2026-11-23"
+cases:
+  - id: RV-001
+    question: 오늘 뭐 복습해?
+    expected_intent: review_today
+    must_include: ["오늘 복습할 카드 3장", "리듀서란?"]
+  - id: RV-002
+    question: 외워야 할 카드 있어?
+    expected_intent: review_today
+    must_include: ["밀린 카드 1장"]
+  - id: RV-003
+    question: 공부 현황 어때?
+    expected_intent: review_stats
+    must_include: ["정답률 56%", "연속 학습 4일"]
+  - id: RV-004
+    question: 내가 약한 노트 뭐야?
+    expected_intent: review_stats
+    must_include: ["체크포인터와 메모리"]
+  - id: RV-005
+    question: 앞으로 요약은 짧게 해줘
+    expected_intent: profile_update
+    must_include: ["요약은 짧게", "기억"]
+  - id: RV-006
+    question: 앞으로 퀴즈는 어렵게 내줘
+    expected_intent: profile_update
+    must_include: ["퀴즈는 어렵게"]
