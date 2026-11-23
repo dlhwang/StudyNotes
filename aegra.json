@@ -1,23 +1,27 @@
 {
-  "dependencies": ["./src"],
+  "dependencies": [
+    "./src"
+  ],
   "graphs": {
     "chat": {
       "path": "./src/study_notes/graphs/chat.py:graph",
       "description": "채팅: 의도 판정 → 하위 Agent → 답·제안 초안·버튼"
-    },
-    "daily_check": {
-      "path": "./src/study_notes/graphs/daily_check.py:graph",
-      "description": "예약 실행 예시: BE가 부르고, 돌려준 제안 초안을 BE가 저장"
     }
   },
   "auth": {
     "path": "./src/study_notes/server/auth.py:auth"
   },
   "checkpointer": {
-    "ttl": { "strategy": "delete", "default_ttl": 43200, "sweep_interval_minutes": 60 },
+    "ttl": {
+      "strategy": "delete",
+      "default_ttl": 43200,
+      "sweep_interval_minutes": 60
+    },
     "durability": "sync"
   },
   "http": {
-    "cors": { "allow_origins": [] }
+    "cors": {
+      "allow_origins": []
+    }
   }
 }

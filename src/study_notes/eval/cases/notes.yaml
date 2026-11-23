@@ -1,0 +1,33 @@
+# notes Agent 평가 질문. 기대 답의 말은 가짜 BE(tools/fakes/be.py)의 합성 데이터 기준이다.
+# 판정: 첫 의도가 expected_intent와 같고, must_include가 답에 모두 들어 있으면 통과.
+
+subject_id: NB-1
+cases:
+  - id: NT-001
+    question: StateGraph 기초 요약해줘
+    expected_intent: note_summary
+    must_include: ["StateGraph 기초", "핵심"]
+  - id: NT-002
+    question: 체크포인터와 메모리 노트 핵심만 정리해줘
+    expected_intent: note_summary
+    must_include: ["체크포인터와 메모리"]
+  - id: NT-003
+    question: 체크포인터 노트 찾아줘
+    expected_intent: note_search
+    must_include: ["체크포인터와 메모리(N-2)"]
+  - id: NT-004
+    question: 노트 목록 보여줘
+    expected_intent: note_search
+    must_include: ["StateGraph 기초", "도구 호출과 ReAct"]
+  - id: NT-005
+    question: 체크포인터가 뭐야?
+    expected_intent: note_qa
+    must_include: ["노트에서 찾은 내용", "상태"]
+  - id: NT-006
+    question: ReAct 패턴 설명해줘
+    expected_intent: note_qa
+    must_include: ["ReAct", "도구 호출과 ReAct"]
+  - id: NT-007
+    question: 양자역학 파동함수가 뭐야?
+    expected_intent: note_qa
+    must_include: ["노트에 관련 내용이 없습니다"]

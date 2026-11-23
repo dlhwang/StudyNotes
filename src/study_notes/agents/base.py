@@ -2,14 +2,14 @@
 
 새 Agent를 만들 때::
 
-    class TasksAgent(BaseAgent):
-        name = "tasks"
-        title = "할 일 Agent"
-        intents = (IntentSpec("task_list", "할 일 목록 보기", (r"할일",)),)
+    class NotesAgent(BaseAgent):
+        name = "notes"
+        title = "노트 Agent"
+        intents = (IntentSpec("note_search", "노트 찾기", (r"노트.*찾아",)),)
 
         async def run(self, req: AgentRequest) -> AgentResult:
-            items = await self.tool("tasks_list_items", {"subject_id": self.subject_id()})
-            return AgentResult(reply=self.reply(f"할 일 {len(items)}건입니다."))
+            notes = await self.tool("notes_list_items", {"notebook_id": self.subject_id()})
+            return AgentResult(reply=self.reply(f"노트 {len(notes)}개입니다."))
 
 규칙
 - 하위 Agent는 요약된 결과만 돌려준다. 다른 하위 Agent를 부르지 않는다 (AGENTS.md §2).
@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from typing import Any, ClassVar, TypeVar
 
 from pydantic import BaseModel, Field, ValidationError
@@ -46,6 +47,8 @@ class AgentRequest(BaseModel):
     text: str
     # 최근 대화 몇 줄의 요약 (원문 전체를 넘기지 않는다)
     history: list[str] = Field(default_factory=list)
+    # 대화 메모리: 최근에 다룬 노트 ID (최신 먼저). "그 노트"를 이어 받는다
+    focus_note_ids: list[str] = Field(default_factory=list)
 
 
 class ReactStep(BaseModel):
@@ -100,6 +103,16 @@ class BaseAgent:
         if not self.request.subject_id:
             raise ToolInputError("무엇에 대한 질문인지 알 수 없습니다", hint="대상을 고른 뒤 다시 물어 주세요")
         return self.request.subject_id
+
+    def screen_note_id(self) -> str | None:
+        """화면에서 보고 있는 노트 ID (context.screen.note_id)."""
+        value = self.request.screen.get("note_id")
+        return str(value) if value else None
+
+    def base_date(self) -> str:
+        """기준일. 화면이 넘긴 screen.base_date, 없으면 오늘."""
+        value = self.request.screen.get("base_date")
+        return str(value) if value else date.today().isoformat()
 
     async def tool(self, name: str, args: BaseModel | dict[str, Any]) -> Any:
         """도구를 부른다(모두 조회). 허용 목록·호출 상한·기록은 도구 실행기가 맡는다."""

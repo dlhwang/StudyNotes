@@ -1,7 +1,7 @@
 """프롬프트는 ``agents/<agent>/prompts/<agent>.<용도>.v<n>.md`` 파일로 둔다.
 
-- 기본은 가장 높은 버전. 설정 ``prompt_pins``로 고정할 수 있다 (예: ``{"tasks.explain": 1}``).
-- 실행 기록에는 ``Prompt.id`` (예: ``tasks.explain.v2``)를 남긴다.
+- 기본은 가장 높은 버전. 설정 ``prompt_pins``로 고정할 수 있다 (예: ``{"notes.summary": 1}``).
+- 실행 기록에는 ``Prompt.id`` (예: ``notes.summary.v2``)를 남긴다.
 - 본문의 ``{이름}`` 자리는 ``render(이름=값)``으로 채운다. 없는 이름은 그대로 둔다.
 """
 

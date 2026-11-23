@@ -2,11 +2,11 @@
 
 사용법::
 
-    class SubjectArgs(BaseModel):
-        subject_id: str
+    class ChunkSearchArgs(BaseModel):
+        query: str
 
-    @agent_tool(agent="tasks", llm_selectable=True)
-    async def tasks_list_items(args: SubjectArgs, ctx: ToolContext) -> list[TaskItem]:
+    @agent_tool(agent="notes", llm_selectable=True)
+    async def notes_search_chunks(args: ChunkSearchArgs, ctx: ToolContext) -> list[ChunkHit]:
         \"\"\"언제 쓰는지 / 언제 쓰지 않는지 / 예시\"\"\"
 
 - 이름은 ``{도메인}_{동사}_{대상}``이고, 도메인은 ``agent``와 같아야 한다.

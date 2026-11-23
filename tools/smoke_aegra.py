@@ -23,7 +23,7 @@ HEADERS = {
     "X-User-Name": quote("김가람"),
     "X-User-Role": "user",
 }  # 헤더는 ASCII만 → 한글은 URL 인코딩
-CONTEXT = {"subject_id": "DEMO-001", "screen": {"screen_id": "home"}}
+CONTEXT = {"subject_id": "NB-1", "screen": {"screen_id": "home"}}
 
 
 def out(text: str) -> None:
@@ -60,10 +60,10 @@ async def main(url: str) -> int:
     tid = thread["thread_id"]
     out(f"thread {tid}")
 
-    out("1) 오늘 할 일 보여줘")
-    ev = await stream(client, tid, input={"messages": [{"role": "user", "content": "오늘 할 일 보여줘"}]})
+    out("1) 노트 목록 보여줘")
+    ev = await stream(client, tid, input={"messages": [{"role": "user", "content": "노트 목록 보여줘"}]})
     assert [e["type"] for e in ev] == ["orchestrator", "agent_reply"], ev
-    assert "열린 할 일" in ev[-1]["reply"]["text"], ev[-1]
+    assert "노트" in ev[-1]["reply"]["text"], ev[-1]
 
     out("2) 멈추지 않고 끝났는지")
     state = await client.threads.get_state(tid)

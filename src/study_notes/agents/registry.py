@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from study_notes.agents.base import BaseAgent
-from study_notes.agents.tasks import TasksAgent
+from study_notes.agents.notes import NotesAgent
 from study_notes.orchestrator.intents import IntentSpec
 
 # 앞에 둔 Agent의 의도 규칙부터 건다
 AGENTS: list[type[BaseAgent]] = [
-    TasksAgent,
+    NotesAgent,
 ]
 
 

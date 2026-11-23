@@ -25,7 +25,6 @@ __all__ = [
     "NoteSummary",
     "ProposalDraft",
     "ReviewStats",
-    "TaskItem",
     "WeakNote",
 ]
 
@@ -102,19 +101,6 @@ class LearnerProfile(BaseModel):
     weak_notes: list[WeakNote] = Field(default_factory=list)
 
 
-# ── 예시 업무: 할 일 (템플릿 예시. Unit 07에서 지운다) ─────────────────
-
-
-class TaskItem(BaseModel):
-    id: str
-    subject_id: str
-    title: str
-    status: Literal["open", "done"]
-    due_date: str = Field(description="마감일 YYYY-MM-DD")
-    owner: str = ""
-    note: str = Field(default="", description="왜 생긴 할 일인지 (근거)")
-
-
 class BeClient(Protocol):
     # 노트북(= subject) 목록. 예약 실행이 돈다
     async def list_subjects(self, *, token: SecretStr | None) -> list[str]: ...
@@ -133,5 +119,3 @@ class BeClient(Protocol):
     ) -> list[Card]: ...
     async def get_review_stats(self, notebook_id: str, base_date: str, *, token: SecretStr | None) -> ReviewStats: ...
     async def get_learner_profile(self, *, token: SecretStr | None, base_date: str | None = None) -> LearnerProfile: ...
-    # 예시 업무: 할 일
-    async def list_tasks(self, subject_id: str, *, token: SecretStr | None) -> list[TaskItem]: ...

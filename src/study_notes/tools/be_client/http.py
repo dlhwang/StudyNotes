@@ -24,7 +24,6 @@ from study_notes.tools.be_client.protocol import (
     Note,
     NoteSummary,
     ReviewStats,
-    TaskItem,
 )
 
 T = TypeVar("T")
@@ -126,8 +125,3 @@ class HttpBeClient:
 
     async def get_learner_profile(self, *, token: SecretStr | None, base_date: str | None = None) -> LearnerProfile:
         return await self._get("/profile", TypeAdapter(LearnerProfile), token=token, base_date=base_date)
-
-    # ── 예시 업무: 할 일 (Unit 07에서 지운다) ─────────────────────────
-
-    async def list_tasks(self, subject_id: str, *, token: SecretStr | None) -> list[TaskItem]:
-        return await self._get(f"/subjects/{subject_id}/tasks", TypeAdapter(list[TaskItem]), token=token)

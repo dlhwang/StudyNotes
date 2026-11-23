@@ -37,6 +37,19 @@ class ChatState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     intents: list[str]
     replies: list[dict[str, Any]]  # 이번 질문의 하위 Agent 답(요약). 제안 초안도 여기에 있다
+    # 대화 메모리(단기): 최근에 다룬 노트 ID, 최신 먼저 최대 3개. 체크포인터가 thread마다 보관한다
+    focus_note_ids: list[str]
+
+
+FOCUS_MAX = 3
+
+
+def _merge_focus(previous: list[str], replies: list[AgentReply]) -> list[str]:
+    """이번 답들이 다룬 노트를 앞에 두고 이전 기억을 뒤에 잇는다(중복 제거)."""
+    fresh: list[str] = []
+    for r in replies:
+        fresh += [str(x) for x in r.data.get("focus_note_ids") or []]
+    return list(dict.fromkeys(fresh + previous))[:FOCUS_MAX]
 
 
 def _req(runtime: Runtime[AgentContext]) -> RequestInfo:
@@ -116,7 +129,13 @@ async def run_agents(state: ChatState, runtime: Runtime[AgentContext]) -> dict[s
         stop = False
         with log_context(run_id=req.run_id, thread_id=req.thread_id, graph=GRAPH, node="run_agents", agent=cls.name):
             try:
-                result = await cls(req, deps).run(AgentRequest(intent=intent, text=text, history=_history(state)))
+                agent_req = AgentRequest(
+                    intent=intent,
+                    text=text,
+                    history=_history(state),
+                    focus_note_ids=list(state.get("focus_note_ids") or []),
+                )
+                result = await cls(req, deps).run(agent_req)
                 reply = result.reply
             except (ToolInputError, ToolPermissionError, ToolLimitError, BeUnavailableError) as e:
                 reply = _error_reply(cls.name, e)
@@ -134,7 +153,8 @@ async def run_agents(state: ChatState, runtime: Runtime[AgentContext]) -> dict[s
         replies.append(reply)
         _emit(AgentReplyEvent(reply=reply).model_dump())
     messages = [AIMessage(content=r.text, name=r.agent) for r in replies]
-    return {"replies": [r.model_dump() for r in replies], "messages": messages}
+    focus = _merge_focus(list(state.get("focus_note_ids") or []), replies)
+    return {"replies": [r.model_dump() for r in replies], "messages": messages, "focus_note_ids": focus}
 
 
 def build_chat_graph(checkpointer: Checkpointer = None) -> Any:

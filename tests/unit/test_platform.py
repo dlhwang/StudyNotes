@@ -8,7 +8,7 @@ import pytest
 from pydantic import BaseModel
 
 from study_notes.agents.base import BaseAgent
-from study_notes.agents.tasks.tools import SubjectArgs
+from study_notes.agents.notes.tools import NoteListArgs
 from study_notes.core.context import SERVICE_USER, RequestInfo, UserInfo
 from study_notes.core.errors import LlmUnavailableError, ToolLimitError, ToolPermissionError
 from study_notes.llm.fake import FakeLlm
@@ -28,13 +28,13 @@ def _req(user: UserInfo | None = None, thread: str = "chat:u1:t") -> RequestInfo
     )
 
 
-def _runner(env: Env, agent: str = "tasks", user: UserInfo | None = None, max_calls: int = 5) -> ToolRunner:
+def _runner(env: Env, agent: str = "notes", user: UserInfo | None = None, max_calls: int = 5) -> ToolRunner:
     return ToolRunner(agent=agent, request=_req(user), be=env.be, recorder=env.recorder, max_calls=max_calls)
 
 
 async def test_allowlist_blocks_other_agents_tools(env: Env) -> None:
     with pytest.raises(ToolPermissionError):
-        await _runner(env, agent="other").call("tasks_list_items", SubjectArgs(subject_id=DEMO_SUBJECT))
+        await _runner(env, agent="other").call("notes_list_items", NoteListArgs(notebook_id=DEMO_SUBJECT))
 
 
 # BE에 쓰는 일로 보이는 이름. ai-agent에 이런 메서드·도구가 생기면 안 된다 (docs/01 §5)
@@ -58,16 +58,16 @@ def test_no_tool_writes_to_be() -> None:
 
 async def test_service_user_reads_only(env: Env) -> None:
     """예약 실행(서비스 계정)도 조회 도구만 부른다."""
-    out = await _runner(env, user=SERVICE_USER).call("tasks_list_items", {"subject_id": DEMO_SUBJECT})
+    out = await _runner(env, user=SERVICE_USER).call("notes_list_items", {"notebook_id": DEMO_SUBJECT})
     assert out
 
 
 async def test_call_limit_and_records(env: Env) -> None:
     runner = _runner(env, max_calls=2)
-    await runner.call("tasks_list_items", SubjectArgs(subject_id=DEMO_SUBJECT))
-    await runner.call("tasks_list_items", {"subject_id": DEMO_SUBJECT})
+    await runner.call("notes_list_items", NoteListArgs(notebook_id=DEMO_SUBJECT))
+    await runner.call("notes_list_items", {"notebook_id": DEMO_SUBJECT})
     with pytest.raises(ToolLimitError):
-        await runner.call("tasks_list_items", {"subject_id": DEMO_SUBJECT})
+        await runner.call("notes_list_items", {"notebook_id": DEMO_SUBJECT})
     recs = env.recorder.of("tool_call")
     assert len(recs) == 2 and all("args_hash" in r.data and r.data["outcome"] == "ok" for r in recs)
 
@@ -79,15 +79,15 @@ class A(BaseModel):
 def test_tool_naming_rules() -> None:
     with pytest.raises(ValueError, match="형식"):
 
-        @agent_tool(agent="tasks")
+        @agent_tool(agent="notes")
         async def get_something(args: A, ctx: ToolContext) -> int:
             """doc"""
             return 1
 
     with pytest.raises(ValueError, match="독스트링"):
 
-        @agent_tool(agent="tasks")
-        async def tasks_get_nodoc(args: A, ctx: ToolContext) -> int:
+        @agent_tool(agent="notes")
+        async def notes_get_nodoc(args: A, ctx: ToolContext) -> int:
             return 1
 
 
@@ -140,8 +140,8 @@ async def test_gateway_timeout() -> None:
 
 
 def test_prompt_loader() -> None:
-    p = load_prompt("tasks", "explain")
-    assert p.id == "tasks.explain.v1"
-    assert "x" in p.render(task="x")
+    p = load_prompt("notes", "summary")
+    assert p.id == "notes.summary.v1"
+    assert "x" in p.render(title="x")
     with pytest.raises(FileNotFoundError):
-        load_prompt("tasks", "nothing")
+        load_prompt("notes", "nothing")

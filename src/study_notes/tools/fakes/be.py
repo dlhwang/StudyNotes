@@ -20,7 +20,6 @@ from study_notes.tools.be_client.protocol import (
     Note,
     NoteSummary,
     ReviewStats,
-    TaskItem,
     WeakNote,
 )
 
@@ -109,32 +108,6 @@ def _demo_cards() -> list[Card]:
     ]
 
 
-def _demo_tasks() -> list[TaskItem]:
-    return [
-        TaskItem(
-            id="T-1",
-            subject_id=DEMO_SUBJECT,
-            title="견적서 검토",
-            status="open",
-            due_date="2026-11-20",
-            owner="김가람",
-            note="협력사 견적이 새로 들어왔다",
-        ),
-        TaskItem(
-            id="T-2",
-            subject_id=DEMO_SUBJECT,
-            title="월간 보고서 작성",
-            status="open",
-            due_date="2026-11-30",
-            owner="이나래",
-            note="월 마감 일정",
-        ),
-        TaskItem(
-            id="T-3", subject_id=DEMO_SUBJECT, title="회의록 공유", status="done", due_date="2026-11-10", owner="김가람"
-        ),
-    ]
-
-
 def _grams(text: str) -> set[str]:
     s = re.sub(r"\s+", "", text).lower()
     return {s[i : i + 2] for i in range(len(s) - 1)}
@@ -172,7 +145,6 @@ class FakeBeClient:
         self.profile = LearnerProfile(
             weak_notes=[WeakNote(note_id="N-2", title="체크포인터와 메모리", again_count_14d=3)]
         )
-        self.tasks: dict[str, list[TaskItem]] = {DEMO_SUBJECT: _demo_tasks()}
 
     def _notebook(self, notebook_id: str) -> None:
         if notebook_id not in self.notebooks:
@@ -253,6 +225,3 @@ class FakeBeClient:
 
     async def get_learner_profile(self, *, token: SecretStr | None, base_date: str | None = None) -> LearnerProfile:
         return self.profile.model_copy(deep=True)
-
-    async def list_tasks(self, subject_id: str, *, token: SecretStr | None) -> list[TaskItem]:
-        return [t.model_copy() for t in self.tasks.get(subject_id, [])]

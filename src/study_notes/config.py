@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     auth: AuthSettings = Field(default_factory=AuthSettings)
     guard: GuardSettings = Field(default_factory=GuardSettings)
     recorder: Literal["log", "postgres"] = "log"
-    # 프롬프트 버전 고정. 예: {"tasks.explain": 2}. 없으면 최신 버전
+    # 프롬프트 버전 고정. 예: {"notes.summary": 2}. 없으면 최신 버전
     prompt_pins: dict[str, int] = Field(default_factory=dict)
     log_level: str = "INFO"
 
