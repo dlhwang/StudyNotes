@@ -65,9 +65,19 @@ async def main(url: str) -> int:
     assert [e["type"] for e in ev] == ["orchestrator", "agent_reply"], ev
     assert "노트" in ev[-1]["reply"]["text"], ev[-1]
 
-    out("2) 멈추지 않고 끝났는지")
+    out("2) 체크포인터가 뭐야? (RAG 질의 — BE가 떠 있어야 근거가 나온다)")
+    ev = await stream(client, tid, input={"messages": [{"role": "user", "content": "체크포인터가 뭐야?"}]})
+    assert ev[-1]["reply"]["agent"] == "notes", ev[-1]
+
+    out("3) 멈추지 않고 끝났는지 · 대화 메모리가 thread에 남았는지")
     state = await client.threads.get_state(tid)
     assert not state["next"], state["next"]
+    assert state["values"].get("focus_note_ids"), state["values"]
+
+    out("4) daily_review 예약 그래프")
+    job = await client.threads.create(metadata={"entry": "daily_review"})
+    result = await client.runs.wait(job["thread_id"], "daily_review", input={"base_date": "2026-11-23"})
+    out(f"  제안 {len(result.get('proposals') or [])}건")
     out("통과")
     return 0
 

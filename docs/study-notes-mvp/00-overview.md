@@ -102,7 +102,7 @@ flowchart LR
 - [x] Unit 10: BE ↔ Agent 연결(SSE 중계·예약 실행·제안 수락) — `units/unit-10-agent-bridge.md`
 - [x] Unit 11: Streamlit UI — `units/unit-11-streamlit.md`
 - [x] Unit 12: Aegra 실행 연동 — `units/unit-12-aegra.md`
-- [ ] Unit 13: MCP 서버(선택 B) — `units/unit-13-mcp.md`
+- [x] Unit 13: MCP 서버(선택 B) — `units/unit-13-mcp.md`
 - [ ] Unit 14: 평가 확장·문서·패키징 마무리 — `units/unit-14-finish.md`
 
 ## 의존관계
@@ -148,8 +148,8 @@ flowchart LR
 | 09 | 완료 | 전체 119 passed(review 그래프 6·규칙 15), ruff·format·mypy 통과, eval 16/16. aegra.json에 chat·daily_review. 평가 실행기에 screen·expected_intents 추가 |
 | 10 | 완료 | 전체 124 passed(중계 5: SSE 순서·메모리·제안 수락 1회·장기 메모리 반영·예약 저장 1회·AegraBridge 변환), ruff·format·mypy 통과. uvicorn 실행 후 HTTP로 질의→퀴즈→현황 3회 스트림 확인 |
 | 11 | 완료 | 전체 128 passed(UI 로직 4: SSE·버튼·화면 변환·BE 왕복), ruff·format·mypy 통과. 내장 브라우저로 확인: 채팅 질의(근거)→'그 노트로 퀴즈'→[카드 3장 저장] 성공, 복습 계획 만들기→답 보기→알맞음(다음 복습일 표시), 노트·설정 화면 |
-| 12 | 진행 중 |  |
-| 13 | 대기 | |
+| 12 | 차단 | 환경 문제: PostgreSQL 17 서비스 멈춤·5432 응답 없음 → aegra serve·smoke 미실행. 한 것: aegra-cli 0.12.0 설치, 그래프 import 확인, .env.example·smoke_aegra.py(RAG 질의·메모리·daily_review)·tools/run_dev.ps1. 실행 절차 문서는 Unit 14에서 docs/02 §3에 반영. 설치 후 pytest 128 passed |
+| 13 | 진행 중 |  |
 | 14 | 대기 | |
 
 ## 전체 완료 기준
