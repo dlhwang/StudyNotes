@@ -93,7 +93,7 @@ flowchart LR
 - [x] Unit 01: 개발 환경과 기준선 — `units/unit-01-env-baseline.md`
 - [x] Unit 02: BE 저장소(SQLite)와 복습 계산 — `units/unit-02-store.md`
 - [x] Unit 03: RAG 적재·검색(전처리·임베딩·Chroma) — `units/unit-03-rag.md`
-- [ ] Unit 04: FastAPI BE(공개 API·내부 조회 API) — `units/unit-04-fastapi-be.md`
+- [x] Unit 04: FastAPI BE(공개 API·내부 조회 API) — `units/unit-04-fastapi-be.md`
 - [ ] Unit 05: Agent의 BeClient를 학습 노트 업무로 — `units/unit-05-be-client.md`
 - [ ] Unit 06: Function Calling 게이트웨이와 ReAct 루프 — `units/unit-06-react.md`
 - [ ] Unit 07: notes Agent(찾기·요약·RAG 질의) + 대화 메모리 + 예시 제거 — `units/unit-07-notes-agent.md`
@@ -139,8 +139,8 @@ flowchart LR
 |---|---|---|
 | 01 | 완료 | pytest 31 passed, ruff·format·mypy(56 files) 통과, eval 2/2. chromadb 1.5.9·streamlit 1.67.0·mcp 설치 |
 | 02 | 완료 | tests/api 16 passed(srs 10·store 6), 전체 47 passed, ruff·format·mypy 통과 |
-| 03 | 진행 중 |  |
-| 04 | 대기 | |
+| 03 | 완료 | tests/api/test_rag.py 7 passed(체크포인터·ReAct·이벤트 루프 질의 1위), ruff·format·mypy 통과. Chroma 1.5.9 그대로 사용 |
+| 04 | 진행 중 |  |
 | 05 | 대기 | |
 | 06 | 대기 | |
 | 07 | 대기 | |
